@@ -1,0 +1,67 @@
+@ wi-fi name is luny123, password is 321ynul
+wifiname = "d"
+password = "b"
+temperature = 0
+const targetAltitude = 100
+const wifiname = "luny123"
+altitude = 0
+up = 0
+Timestamp = 0
+incline = 0
+open = 1
+close = 0
+camera = (open & !close) | close
+display : ( "Please enter the password: " )
+enter : ( password )
+@ connect drone to wifi
+connect (wifiname, password)
+@ declare function
+function turn360 ( times )
+start
+	turnAngle = 2
+	from (0) to (times) 
+	start
+		turnCCW ( turnAngle )
+	end
+end
+x = 6*(3 - 1)/(1 + +7)
+y = (4*2) + ((-1)*5 )
+takeOff ( )
+goTo ( x , y )
+ascend(targetAltitude)
+altitude = getAltitude()
+incline = getIncline()
+turn360 ( 5 )
+if(altitude == 100)
+start
+	setCamera ( camera )
+	takePictures()
+end
+else
+start
+	turnCW ( 30 )
+end
+while (altitude < 300)
+start 
+	up = up + 10
+	ascend( up )
+	altitude = getAltitude()
+end
+temperature = getTemperature()
+if( temperature >= 32)
+start
+	display : ("Enter a heigh to descend")
+	enter : ( targetHeight ) 
+	descend( targetHeight )
+end
+timestamp = getTimestamp()
+altitude  = getAltitude()
+if (altitude <= 0)
+start
+	acc = getAcceleration()
+end
+if( acc > 0)
+start
+	land()
+end
+endprogram

@@ -1,0 +1,216 @@
+%token LP RP NEWLINE
+%token GETINCLINE GETTEMPERATURE GETALTITUDE GETACCELERATION SETCAMERA TAKEPICTURES 
+%token GETTIMESTAMP CONNECT TURNCW
+%token TURNCCW ASCEND DESCEND TAKEOFF LAND GOTO
+%token FUNCTION IF ELSE WHILE START END FROM TO IDENTIFIER AND OR
+%token GREATER_THAN LESS_THAN  GREATER_EQUAL LESS_EQUAL ENTER 
+%token DISPLAY  MINUS PLUS DIVIDE MULTIPLY IF_EQUAL COMMA NOT 
+%token ASSIGNMENT_OP COLON INTEGER STRING COMMENT CONST ENDPROGRAM
+
+%%
+
+program: 
+stmt_list ENDPROGRAM
+
+stmt_list: 
+stmt
+| stmt stmt_list
+
+stmt: 
+if_stmt
+|loop
+| func_call
+| func_dec
+| assignment_op
+| comments
+| input
+| output
+| const_dec
+
+const_dec:
+CONST IDENTIFIER ASSIGNMENT_OP INTEGER NEWLINE
+| CONST IDENTIFIER ASSIGNMENT_OP STRING NEWLINE
+
+if_stmt:
+IF LP expr RP NEWLINE START NEWLINE stmt_list END
+| IF LP expr RP NEWLINE START NEWLINE stmt_list END ELSE NEWLINE START NEWLINE stmt_list END NEWLINE
+
+loop: 
+while_loop 
+| for_loop
+
+while_loop: 
+WHILE LP expr RP NEWLINE START NEWLINE stmt_list END NEWLINE
+
+for_loop:
+FROM LP INTEGER RP TO LP INTEGER RP NEWLINE START NEWLINE stmt_list END NEWLINE
+| FROM LP INTEGER RP TO LP IDENTIFIER RP NEWLINE START NEWLINE stmt_list END NEWLINE
+| FROM LP IDENTIFIER RP TO LP IDENTIFIER RP NEWLINE START NEWLINE stmt_list END NEWLINE
+| FROM LP IDENTIFIER RP TO LP INTEGER RP NEWLINE START NEWLINE stmt_list END NEWLINE
+
+
+assignment_op : 
+IDENTIFIER ASSIGNMENT_OP func_call
+| IDENTIFIER ASSIGNMENT_OP STRING NEWLINE
+| IDENTIFIER ASSIGNMENT_OP expr NEWLINE
+
+expr:
+relation_expression 
+| logic
+
+relation_expression:
+deep_term relation_sign deep_term
+
+relation_sign: 
+GREATER_THAN 
+| LESS_THAN
+| GREATER_EQUAL 
+| LESS_EQUAL
+| IF_EQUAL
+
+logic:
+logic_low
+| logic OR logic_low
+
+logic_low:
+logic_high
+| logic_low AND logic_high
+
+logic_high:
+arithmetic_expr
+| NOT arithmetic_expr
+         
+arithmetic_expr:
+term
+| term PLUS arithmetic_expr
+| term MINUS arithmetic_expr
+
+term:
+deep_term
+| term MULTIPLY deep_term
+| term DIVIDE deep_term
+
+deep_term: 
+INTEGER
+| IDENTIFIER
+| LP expr RP
+
+nonprim_call: 
+IDENTIFIER LP params RP NEWLINE
+| IDENTIFIER LP RP NEWLINE
+
+params: 
+param_types 
+| param_types COMMA params
+
+param_types: 
+IDENTIFIER 
+| INTEGER
+| STRING 
+
+func_dec: 
+FUNCTION IDENTIFIER LP func_args RP NEWLINE START NEWLINE stmt_list END NEWLINE
+| FUNCTION IDENTIFIER LP RP NEWLINE START NEWLINE stmt_list END NEWLINE
+
+func_args: 
+IDENTIFIER 
+| IDENTIFIER COMMA func_args 
+
+comments :
+COMMENT NEWLINE
+
+input :
+ENTER COLON LP IDENTIFIER RP NEWLINE
+
+output : 
+DISPLAY COLON LP IDENTIFIER RP NEWLINE
+           | DISPLAY COLON LP STRING RP NEWLINE
+           | DISPLAY COLON LP INTEGER RP NEWLINE
+
+func_call: 
+primitive_call
+| nonprim_call
+
+primitive_call: 
+getIncline 
+| getAltitude
+| getTemperature
+| getAcceleration
+| setCamera
+| takePictures
+| getTimestamp
+| connect
+| turnCW
+| turnCCW
+| ascend 
+| descend 
+| takeOff
+| land
+| goTo
+
+getIncline: 
+GETINCLINE LP RP NEWLINE
+
+getAltitude:
+GETALTITUDE LP RP NEWLINE
+
+getTemperature: 
+GETTEMPERATURE LP RP NEWLINE
+
+getAcceleration:
+GETACCELERATION LP RP NEWLINE
+
+setCamera: 
+SETCAMERA LP IDENTIFIER RP NEWLINE
+| SETCAMERA LP INTEGER RP NEWLINE
+| SETCAMERA LP STRING RP NEWLINE
+
+takePictures:
+TAKEPICTURES LP RP NEWLINE
+
+getTimestamp:
+GETTIMESTAMP LP RP NEWLINE
+
+connect:
+CONNECT LP IDENTIFIER COMMA IDENTIFIER RP NEWLINE
+| CONNECT LP IDENTIFIER COMMA STRING RP NEWLINE
+| CONNECT LP STRING COMMA IDENTIFIER RP NEWLINE
+| CONNECT LP STRING COMMA STRING RP NEWLINE
+
+turnCW:
+TURNCW LP IDENTIFIER RP NEWLINE
+| TURNCW LP INTEGER RP NEWLINE
+
+turnCCW:
+TURNCCW LP IDENTIFIER RP NEWLINE
+| TURNCCW LP INTEGER RP NEWLINE
+
+ascend:
+ASCEND LP IDENTIFIER RP NEWLINE
+| ASCEND LP INTEGER RP NEWLINE
+
+descend:
+DESCEND LP IDENTIFIER RP NEWLINE
+| DESCEND LP INTEGER RP NEWLINE
+
+takeOff:
+TAKEOFF LP RP NEWLINE
+land:
+LAND LP RP NEWLINE
+goTo:
+GOTO LP IDENTIFIER COMMA IDENTIFIER RP NEWLINE
+| GOTO LP IDENTIFIER COMMA INTEGER RP NEWLINE
+| GOTO LP INTEGER COMMA IDENTIFIER RP NEWLINE
+| GOTO LP INTEGER COMMA INTEGER RP NEWLINE
+
+
+%%
+#include "lex.yy.c"
+int linecount =1;
+main() {
+    yyparse();
+    if(yynerrs < 1){
+        printf("Input program is valid for Luny! \n");
+    }
+}
+yyerror(char *s) { printf("%s, on line:%d\n", s, linecount); }
